@@ -37,6 +37,7 @@ class AuthPage extends StatefulWidget {
 
 class _AuthPageState extends State<AuthPage> {
   final _apiKey = TextEditingController(text: _apiKeyPlaceholder);
+  final _server = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
 
@@ -56,6 +57,7 @@ class _AuthPageState extends State<AuthPage> {
   void dispose() {
     _sub?.cancel();
     _apiKey.dispose();
+    _server.dispose();
     _email.dispose();
     _password.dispose();
     super.dispose();
@@ -69,7 +71,8 @@ class _AuthPageState extends State<AuthPage> {
     }
     await _sub?.cancel();
     // Restores the session saved on this device; makes no network call.
-    final auth = await AbrovaAuth.initialize(key);
+    final server = _server.text.trim();
+    final auth = await AbrovaAuth.initialize(key, baseUrl: server.isEmpty ? null : server);
     // Emits on sign-in, sign-out and when a session ends.
     _sub = auth.authStateChanges.listen((user) {
       if (mounted) setState(() => _user = user);
@@ -122,6 +125,13 @@ class _AuthPageState extends State<AuthPage> {
               controller: _apiKey,
               autocorrect: false,
               decoration: const InputDecoration(labelText: 'Public API key (ab_live_...)'),
+            ),
+            // Optional: another Auth server, for example one you run yourself. Empty = the default server.
+            TextField(
+              controller: _server,
+              autocorrect: false,
+              keyboardType: TextInputType.url,
+              decoration: const InputDecoration(labelText: 'Server URL (optional)'),
             ),
             const SizedBox(height: 8),
             OutlinedButton(onPressed: _configure, child: const Text('Configure')),
