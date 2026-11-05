@@ -27,7 +27,7 @@ The package is published on [Abrova Center](https://center.abrova.ir):
 dependencies:
   abrova_auth:
     hosted: https://center.abrova.ir/api/packages/abrova/pub
-    version: ^0.1.1
+    version: ^0.2.0
 ```
 
 Turn on Abrova Auth and the sign-in methods you want in the Abrova Console.
@@ -127,6 +127,21 @@ await auth.getMe();             // fresh profile
 await auth.signOut();           // this device; never fails
 await auth.signOutEverywhere(); // all devices
 await auth.deleteAccount();     // required by the App Store for apps with sign-in
+```
+
+## Custom claims
+
+Your server sets custom claims for a user with the server secret (`setCustomUserClaims`, see
+[Custom claims](https://abrova.ir/docs/auth/custom-claims)), for example `{ "plan": "pro" }`. Every token of the
+user carries them, and Abrova Sync rules read them as `auth.token.plan`. In the app, read them to show things
+(a "Pro" badge): access is still decided on the server.
+
+```dart
+final result = await auth.getTokenResult();
+if (result?.claims['plan'] == 'pro') showProBadge();
+
+// Right after your server changed the claims ("Check my purchase"):
+await auth.getTokenResult(forceRefresh: true);
 ```
 
 ## Errors

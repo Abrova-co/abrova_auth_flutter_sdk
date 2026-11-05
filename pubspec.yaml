@@ -1,6 +1,6 @@
 name: abrova_auth
 description: Abrova Auth for Flutter - sign-in for your app's users (anonymous, Apple, Google, e-mail, magic link, Telegram) with a user token every Abrova SDK accepts.
-version: 0.1.1
+version: 0.2.0
 homepage: https://abrova.ir
 repository: https://github.com/Abrova-co/abrova_auth_flutter_sdk
 issue_tracker: https://github.com/Abrova-co/abrova_auth_flutter_sdk/issues

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// A signed-in user of your app.
 class AbrovaAuthUser {
   const AbrovaAuthUser({
@@ -35,7 +37,8 @@ class AbrovaAuthUser {
         'id': id,
         'anonymous': anonymous,
         'emailVerified': emailVerified,
-        if (createdAt != null) 'createdAt': createdAt!.toUtc().toIso8601String(),
+        if (createdAt != null)
+          'createdAt': createdAt!.toUtc().toIso8601String(),
         'providers': providers,
       };
 
@@ -49,8 +52,8 @@ class AbrovaAuthUser {
       _sameList(other.providers, providers);
 
   @override
-  int get hashCode =>
-      Object.hash(id, anonymous, emailVerified, createdAt, Object.hashAll(providers));
+  int get hashCode => Object.hash(
+      id, anonymous, emailVerified, createdAt, Object.hashAll(providers));
 
   @override
   String toString() => 'AbrovaAuthUser($id, anonymous: $anonymous)';
@@ -134,4 +137,75 @@ class AbrovaTelegramCodeResult {
         botUrl: json['botUrl'] as String?,
         expiresIn: Duration(seconds: (json['expiresIn'] as num?)?.toInt() ?? 0),
       );
+}
+
+/// The access token with its decoded fields, like Firebase's `IdTokenResult`.
+///
+/// For display only (a "Pro" badge, unlocked lessons): the app can read the
+/// token but never change it. Abrova's servers check the token on every
+/// request and decide access with rules.
+class AbrovaTokenResult {
+  const AbrovaTokenResult({
+    required this.token,
+    required this.claims,
+    required this.expirationTime,
+    required this.issuedAtTime,
+    required this.authTime,
+    this.signInProvider,
+  });
+
+  /// The access token itself (the same one [AbrovaAuth.getToken] gives).
+  final String token;
+
+  /// Every field of the token: `sub` (the user id), `pid`, `iss`, `aud`,
+  /// `iat`, `exp`, `auth_time`, `amr`, and the custom claims your server set
+  /// with `setCustomUserClaims` (for example `plan`, `role`).
+  final Map<String, dynamic> claims;
+
+  /// When this token expires (UTC).
+  final DateTime expirationTime;
+
+  /// When this token was issued (UTC).
+  final DateTime issuedAtTime;
+
+  /// When the user signed in: the session's start; a refresh doesn't change it.
+  final DateTime authTime;
+
+  /// How the user signed in: `anonymous`, `apple`, `google`, `password`,
+  /// `magic_link`, `telegram`.
+  final String? signInProvider;
+
+  /// Reads a token; null when it isn't one Abrova signs.
+  static AbrovaTokenResult? fromToken(String token) {
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+    Object? payload;
+    try {
+      payload = jsonDecode(
+          utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))));
+    } catch (_) {
+      return null;
+    }
+    if (payload is! Map<String, dynamic>) return null;
+    DateTime? at(Object? seconds) => seconds is num
+        ? DateTime.fromMillisecondsSinceEpoch((seconds * 1000).round(),
+            isUtc: true)
+        : null;
+    final exp = at(payload['exp']);
+    final iat = at(payload['iat']);
+    if (exp == null || iat == null) return null;
+    // `meta` is Abrova's own bookkeeping for its servers, not a claim.
+    final claims = Map<String, dynamic>.of(payload)..remove('meta');
+    final amr = payload['amr'];
+    return AbrovaTokenResult(
+      token: token,
+      claims: claims,
+      expirationTime: exp,
+      issuedAtTime: iat,
+      authTime: at(payload['auth_time']) ?? iat,
+      signInProvider: amr is List && amr.isNotEmpty && amr.first is String
+          ? amr.first as String
+          : null,
+    );
+  }
 }
