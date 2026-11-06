@@ -27,7 +27,7 @@ The package is published on [Abrova Center](https://center.abrova.ir):
 dependencies:
   abrova_auth:
     hosted: https://center.abrova.ir/api/packages/abrova/pub
-    version: ^0.2.0
+    version: ^0.3.0
 ```
 
 Turn on Abrova Auth and the sign-in methods you want in the Abrova Console.
@@ -143,6 +143,18 @@ if (result?.claims['plan'] == 'pro') showProBadge();
 // Right after your server changed the claims ("Check my purchase"):
 await auth.getTokenResult(forceRefresh: true);
 ```
+
+## E-mail language
+
+Confirm e-mail, password reset and magic-link e-mails go out in the language you set, like Firebase's `languageCode`.
+Unset, the project's template language from the Console applies. Edit the texts in **Console › Abrova Auth › Email
+templates**.
+
+```dart
+await AbrovaAuth.instance.setLanguageCode('fa'); // or useDeviceLanguage()
+```
+
+See [Email templates](https://abrova.ir/docs/auth/email-templates).
 
 ## Errors
 

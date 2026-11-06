@@ -1,3 +1,9 @@
+## 0.3.0
+
+- `languageCode`, `setLanguageCode()` and `useDeviceLanguage()`, like Firebase: the language of the e-mails Abrova
+  sends this user (confirm e-mail, password reset, magic link), for example
+  `await AbrovaAuth.instance.setLanguageCode('fa')`. Unset, the project's template language from the Console applies.
+
 ## 0.2.0
 
 - `getTokenResult({forceRefresh})`: the access token with its decoded fields, like Firebase's `getIdTokenResult()`.
